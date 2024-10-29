@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <!-- Zeichensatz der Webseite festlegen -->
+    <meta charset="UTF-8">
+    <!-- Titel der Webseite -->
+    <title>Chatbot Interface</title>
+    <!-- Einbinden von Vue.js über ein CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <!-- Einfaches CSS-Styling -->
+    <style>
+        /* Styling für den Body der Seite */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+        }
+        /* Styling für das Haupt-Div */
+        #app {
+            width: 500px;
+            margin: 50px auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px #ccc;
+        }
+        /* Styling für Nachrichten */
+        .message {
+            margin: 10px 0;
+        }
+        /* Benutzer-Nachrichten rechtsbündig */
+        .message.user {
+            text-align: right;
+        }
+        /* Bot-Nachrichten linksbündig */
+        .message.bot {
+            text-align: left;
+        }
+        /* Styling für den Inhalt der Nachricht */
+        .message-content {
+            display: inline-block;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        /* Hintergrundfarbe für Benutzer-Nachrichten */
+        .message.user .message-content {
+            background-color: #0084ff;
+            color: #fff;
+        }
+        /* Hintergrundfarbe für Bot-Nachrichten */
+        .message.bot .message-content {
+            background-color: #e5e5ea;
+            color: #000;
+        }
+        /* Styling für den Eingabebereich */
+        #input-area {
+            margin-top: 20px;
+            display: flex;
+        }
+        /* Styling für das Eingabefeld */
+        #input-area input {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+        }
+        /* Styling für den Senden-Button */
+        #input-area button {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+<!-- Haupt-Div für die Vue.js-Anwendung -->
+<div id="app">
+    <!-- Titel des Chat-Interfaces -->
+    <h2>Chatbot Interface</h2>
+    <!-- Anzeige der Nachrichten -->
+    <div v-for="message in messages" :class="['message', message.sender]">
+        <!-- Inhalt der Nachricht -->
+        <div class="message-content">{{ message.text }}</div>
+    </div>
+    <!-- Eingabebereich für neue Nachrichten -->
+    <div id="input-area">
+        <!-- Eingabefeld für die Benutzer-Nachricht -->
+        <input type="text" v-model="userInput" @keyup.enter="sendMessage" placeholder="Schreibe eine Nachricht...">
+        <!-- Button zum Senden der Nachricht -->
+        <button @click="sendMessage">Senden</button>
+    </div>
+</div>
+
+<!-- Vue.js-Skript -->
+<script>
+    // Erstelle eine neue Vue-Instanz
+    new Vue({
+        el: '#app',  // Element, an das die Vue-Instanz gebunden wird
+        data: {
+            userInput: '',     // Aktuelle Eingabe des Benutzers
+            messages: [],      // Liste aller Nachrichten im Chat
+            session_id: null   // Eindeutige Sitzung-ID für den Chat
+        },
+        created() {
+            // Generiere eine zufällige Sitzung-ID bei Erstellung der Instanz
+            this.session_id = Math.random().toString(36).substr(2, 9);
+        },
+        methods: {
+            // Funktion zum Senden einer Nachricht
+            sendMessage() {
+                // Überprüfe, ob das Eingabefeld leer ist
+                if (this.userInput.trim() === '') return;
+
+                // Füge die Benutzer-Nachricht zur Nachrichtenliste hinzu
+                this.messages.push({ sender: 'user', text: this.userInput });
+
+                // Speichere die aktuelle Eingabe und leere das Eingabefeld
+                let message = this.userInput;
+                this.userInput = '';
+
+                // Sende die Nachricht an das Backend
+                fetch('http://localhost:5000/chat', {
+                    method: 'POST',  // Verwende die POST-Methode
+                    headers: {
+                        'Content-Type': 'application/json'  // Setze den Content-Type-Header
+                    },
+                    body: JSON.stringify({
+                        session_id: this.session_id,  // Übermittle die Sitzung-ID
+                        message: message              // Übermittle die Nachricht
+                    })
+                })
+                .then(response => response.json())  // Verarbeite die Antwort als JSON
+                .then(data => {
+                    // Überprüfe, ob ein Fehler zurückgegeben wurde
+                    if (data.error) {
+                        alert(data.error);  // Zeige den Fehler an
+                    } else {
+                        // Füge die Bot-Antwort zur Nachrichtenliste hinzu
+                        this.messages.push({ sender: 'bot', text: data.response });
+                    }
+                })
+                .catch(error => {
+                    // Gib Fehler in der Konsole aus
+                    console.error('Fehler:', error);
+                });
+            }
+        }
+    });
+</script>
+</body>
+</html>
