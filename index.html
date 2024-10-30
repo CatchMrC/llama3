@@ -139,8 +139,13 @@
             currentChatIndex: 0,  // Index des aktuell ausgewählten Chats
         },
         created() {
-            // Initialisiere mit einem neuen Chat
-            this.startNewChat();
+            // Lade Chats aus localStorage, falls vorhanden
+            const savedChats = JSON.parse(localStorage.getItem('chats'));
+            if (savedChats && savedChats.length > 0) {
+                this.chats = savedChats;
+            } else {
+                this.startNewChat();
+            }
         },
         computed: {
             // Der aktuell ausgewählte Chat
@@ -198,9 +203,18 @@
                     console.error('Fehler:', error);
                 });
             }
-            
+        },
+        watch: {
+            chats: {
+                handler() {
+                    // Speichere die Chats im localStorage
+                    localStorage.setItem('chats', JSON.stringify(this.chats));
+                },
+                deep: true
+            }
         }
     });
 </script>
+
 </body>
 </html>
