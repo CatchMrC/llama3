@@ -1,145 +1,204 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <!-- Zeichensatz der Webseite festlegen -->
     <meta charset="UTF-8">
-    <!-- Titel der Webseite -->
     <title>Chatbot Interface</title>
-    <!-- Einbinden von Vue.js über ein CDN -->
+    <!-- Vue.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
-    <!-- Einfaches CSS-Styling -->
+    <!-- Styling -->
     <style>
-        /* Styling für den Body der Seite */
         body {
             font-family: Arial, sans-serif;
             background-color: #f2f2f2;
         }
-        /* Styling für das Haupt-Div */
+        /* Hauptcontainer mit Flexbox */
         #app {
-            width: 500px;
-            margin: 50px auto;
+            display: flex;
+            height: 90vh;
+            margin: 20px auto;
+            width: 80%;
             background-color: #fff;
-            padding: 20px;
             box-shadow: 0 0 10px #ccc;
         }
-        /* Styling für Nachrichten */
-        .message {
-            margin: 10px 0;
+        /* Sidebar für Chat-Historie */
+        #sidebar {
+            width: 25%;
+            border-right: 1px solid #ccc;
+            overflow-y: auto;
         }
-        /* Benutzer-Nachrichten rechtsbündig */
-        .message.user {
-            text-align: right;
-        }
-        /* Bot-Nachrichten linksbündig */
-        .message.bot {
-            text-align: left;
-        }
-        /* Styling für den Inhalt der Nachricht */
-        .message-content {
-            display: inline-block;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        /* Hintergrundfarbe für Benutzer-Nachrichten */
-        .message.user .message-content {
-            background-color: #0084ff;
-            color: #fff;
-        }
-        /* Hintergrundfarbe für Bot-Nachrichten */
-        .message.bot .message-content {
-            background-color: #e5e5ea;
-            color: #000;
-        }
-        /* Styling für den Eingabebereich */
-        #input-area {
-            margin-top: 20px;
+        /* Bereich für den Chat */
+        #chat-area {
+            width: 75%;
             display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
-        /* Styling für das Eingabefeld */
+        /* Nachrichtenliste */
+        #messages {
+            padding: 20px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+        /* Eingabebereich */
+        #input-area {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+        }
         #input-area input {
             flex: 1;
             padding: 10px;
             font-size: 16px;
         }
-        /* Styling für den Senden-Button */
         #input-area button {
             padding: 10px 20px;
             font-size: 16px;
         }
+        /* Styling für Chat-Historie */
+        .chat-item {
+            padding: 15px;
+            border-bottom: 1px solid #ccc;
+            cursor: pointer;
+        }
+        .chat-item:hover {
+            background-color: #f0f0f0;
+        }
+        .chat-item.active {
+            background-color: #e0e0e0;
+        }
+        /* Nachrichtenstyling */
+        .message {
+            margin: 10px 0;
+        }
+        .message.user {
+            text-align: right;
+        }
+        .message.bot {
+            text-align: left;
+        }
+        .message-content {
+            display: inline-block;
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 70%;
+        }
+        .message.user .message-content {
+            background-color: #0084ff;
+            color: #fff;
+        }
+        .message.bot .message-content {
+            background-color: #e5e5ea;
+            color: #000;
+        }
     </style>
 </head>
 <body>
-<!-- Haupt-Div für die Vue.js-Anwendung -->
 <div id="app">
-    <!-- Titel des Chat-Interfaces -->
-    <h2>Chatbot Interface</h2>
-    <!-- Anzeige der Nachrichten -->
-    <div v-for="message in messages" :class="['message', message.sender]">
-        <!-- Inhalt der Nachricht -->
-        <div class="message-content">{{ message.text }}</div>
+    <!-- Sidebar für die Chat-Historie -->
+    <div id="sidebar">
+        <!-- ... im #sidebar Div ... -->
+        <h3 style="text-align: center;">Chat-Historie</h3>
+        <button @click="startNewChat" style="width: 90%; margin: 10px auto; display: block;">Neuer Chat</button>
+    <div v-for="(chat, index) in chats" :key="chat.session_id" 
+        :class="['chat-item', currentChatIndex === index ? 'active' : '']"
+        @click="loadChat(index)">
+
+   <div v-if="currentChatIndex === index">
+        <input v-model="chat.title" @click.stop placeholder="Chat-Titel eingeben" style="width: 90%;">
     </div>
-    <!-- Eingabebereich für neue Nachrichten -->
-    <div id="input-area">
-        <!-- Eingabefeld für die Benutzer-Nachricht -->
-        <input type="text" v-model="userInput" @keyup.enter="sendMessage" placeholder="Schreibe eine Nachricht...">
-        <!-- Button zum Senden der Nachricht -->
-        <button @click="sendMessage">Senden</button>
+    <div v-else>
+        {{ chat.title }}
+    </div>
+    </div>
+<!-- ... -->
+
+    </div>
+    <!-- Hauptbereich für den Chat -->
+    <div id="chat-area">
+        <div id="messages">
+            <h2>Chatbot Interface</h2>
+            <div v-for="message in currentChat.messages" :class="['message', message.sender]">
+                <div class="message-content">{{ message.text }}</div>
+            </div>
+        </div>
+        <div id="input-area">
+            <input type="text" v-model="userInput" @keyup.enter="sendMessage" placeholder="Schreibe eine Nachricht...">
+            <button @click="sendMessage">Senden</button>
+        </div>
     </div>
 </div>
 
-<!-- Vue.js-Skript -->
+
+
 <script>
-    // Erstelle eine neue Vue-Instanz
     new Vue({
-        el: '#app',  // Element, an das die Vue-Instanz gebunden wird
+        el: '#app',
         data: {
-            userInput: '',     // Aktuelle Eingabe des Benutzers
-            messages: [],      // Liste aller Nachrichten im Chat
-            session_id: null   // Eindeutige Sitzung-ID für den Chat
+            userInput: '',        // Aktuelle Benutzereingabe
+            chats: [],            // Liste aller Chats
+            currentChatIndex: 0,  // Index des aktuell ausgewählten Chats
         },
         created() {
-            // Generiere eine zufällige Sitzung-ID bei Erstellung der Instanz
-            this.session_id = Math.random().toString(36).substr(2, 9);
+            // Initialisiere mit einem neuen Chat
+            this.startNewChat();
+        },
+        computed: {
+            // Der aktuell ausgewählte Chat
+            currentChat() {
+                return this.chats[this.currentChatIndex];
+            }
         },
         methods: {
-            // Funktion zum Senden einer Nachricht
+            // Startet einen neuen Chat
+            startNewChat() {
+                const newChat = {
+                    session_id: Math.random().toString(36).substr(2, 9),
+                    messages: [],
+                    title: 'Neuer Chat ' + (this.chats.length + 1)
+                };
+                this.chats.unshift(newChat);
+                this.currentChatIndex = 0;
+            },
+            // Lädt einen Chat aus der Historie
+            loadChat(index) {
+                this.currentChatIndex = index;
+            },
+            // Sendet eine Nachricht an das Backend
             sendMessage() {
-                // Überprüfe, ob das Eingabefeld leer ist
                 if (this.userInput.trim() === '') return;
 
-                // Füge die Benutzer-Nachricht zur Nachrichtenliste hinzu
-                this.messages.push({ sender: 'user', text: this.userInput });
+                // Füge die Benutzer-Nachricht hinzu
+                this.currentChat.messages.push({ sender: 'user', text: this.userInput });
 
-                // Speichere die aktuelle Eingabe und leere das Eingabefeld
+                // Speichere die Eingabe und lösche das Eingabefeld
                 let message = this.userInput;
                 this.userInput = '';
 
                 // Sende die Nachricht an das Backend
                 fetch('http://localhost:5000/chat', {
-                    method: 'POST',  // Verwende die POST-Methode
+                    method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'  // Setze den Content-Type-Header
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        session_id: this.session_id,  // Übermittle die Sitzung-ID
-                        message: message              // Übermittle die Nachricht
+                        session_id: this.currentChat.session_id,
+                        message: message
                     })
                 })
-                .then(response => response.json())  // Verarbeite die Antwort als JSON
+                .then(response => response.json())
                 .then(data => {
-                    // Überprüfe, ob ein Fehler zurückgegeben wurde
                     if (data.error) {
-                        alert(data.error);  // Zeige den Fehler an
+                        alert(data.error);
                     } else {
-                        // Füge die Bot-Antwort zur Nachrichtenliste hinzu
-                        this.messages.push({ sender: 'bot', text: data.response });
+                        // Füge die Bot-Antwort hinzu
+                        this.currentChat.messages.push({ sender: 'bot', text: data.response });
                     }
                 })
                 .catch(error => {
-                    // Gib Fehler in der Konsole aus
                     console.error('Fehler:', error);
                 });
             }
+            
         }
     });
 </script>

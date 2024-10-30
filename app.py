@@ -26,7 +26,7 @@ Answer:
 """
 
 # Initialisiere das Sprachmodell mit dem gewünschten Modell
-model = OllamaLLM(model="llama3")
+model = OllamaLLM(model="llama3.2")
 
 # Erstelle ein ChatPromptTemplate aus dem Template
 prompt = ChatPromptTemplate.from_template(template)
