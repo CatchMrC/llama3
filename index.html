@@ -38,7 +38,9 @@
             padding: 20px;
             overflow-y: auto;
             flex-grow: 1;
+            max-height: calc(100vh - 200px); /* Passe die Höhe nach Bedarf an */
         }
+
         /* Eingabebereich */
         #input-area {
             display: flex;
@@ -115,12 +117,12 @@
 
     <!-- Hauptbereich für den Chat -->
     <div id="chat-area">
-        <div id="messages">
+        <div id="messages" ref="messagesContainer">
             <h2>Chatbot Interface</h2>
             <div v-for="message in currentChat.messages" :class="['message', message.sender]">
                 <div class="message-content">{{ message.text }}</div>
             </div>
-        </div>
+        </div>        
         <div id="input-area">
             <input type="text" v-model="userInput" @keyup.enter="sendMessage" placeholder="Send a message...">
             <button @click="sendMessage">Send</button>
@@ -163,10 +165,20 @@
                 };
                 this.chats.unshift(newChat);
                 this.currentChatIndex = 0;
+
+                // Nach dem Starten eines neuen Chats scrollen
+                this.$nextTick(() => {
+                    this.scrollToBottom();
+                });
             },
             // Lädt einen Chat aus der Historie
             loadChat(index) {
                 this.currentChatIndex = index;
+
+                // Nach dem Laden eines Chats scrollen
+                this.$nextTick(() => {
+                    this.scrollToBottom();
+                });
             },
             // Sendet eine Nachricht an das Backend
             sendMessage() {
@@ -178,6 +190,11 @@
                 // Speichere die Eingabe und lösche das Eingabefeld
                 let message = this.userInput;
                 this.userInput = '';
+
+                // Automatisches Scrollen nach dem Hinzufügen der Nachricht
+                this.$nextTick(() => {
+                    this.scrollToBottom();
+                });
 
                 // Sende die Nachricht an das Backend
                 fetch('http://localhost:5000/chat', {
@@ -197,6 +214,11 @@
                     } else {
                         // Füge die Bot-Antwort hinzu
                         this.currentChat.messages.push({ sender: 'bot', text: data.response });
+
+                        // Automatisches Scrollen nach dem Hinzufügen der Bot-Antwort
+                        this.$nextTick(() => {
+                            this.scrollToBottom();
+                        });
                     }
                 })
                 .catch(error => {
@@ -224,9 +246,24 @@
                         this.currentChatIndex--;
                     }
                 }
+            },
+            // Methode zum automatischen Scrollen
+            scrollToBottom() {
+                if (this.$refs.messagesContainer) {
+                    const container = this.$refs.messagesContainer;
+                    container.scrollTop = container.scrollHeight;
+                }
             }
         },
         watch: {
+            'currentChat.messages': {
+                handler() {
+                    this.$nextTick(() => {
+                        this.scrollToBottom();
+                    });
+                },
+                deep: true
+            },
             chats: {
                 handler() {
                     // Speichere die Chats im localStorage
@@ -237,6 +274,7 @@
         }
     });
 </script>
+
 
 
 </body>
