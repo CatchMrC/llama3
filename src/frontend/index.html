@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Chatbot Interface</title>
+    <link rel="stylesheet" media="screen" href="css/styles.css">
+     <!-- Vue.js CDN -->
+ <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>   
+   
+</head>
+<body>
+
+<div id="app">
+   <!-- Sidebar für die Chat-Historie -->
+<div id="sidebar">
+    <h3 style="text-align: center;">Chat-Historie</h3>
+    <button @click="startNewChat" style="width: 90%; margin: 10px auto; display: block;">Neuer Chat</button>
+    <div v-for="(chat, index) in chats" :key="chat.session_id" 
+         :class="['chat-item', currentChatIndex === index ? 'active' : '']"
+         @click="loadChat(index)">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <!-- Chat-Titel oder Eingabefeld -->
+            <div @click.stop>
+                <input v-if="currentChatIndex === index" v-model="chat.title" placeholder="Chat-Titel eingeben" style="width: 80%;">
+                <span v-else>{{ chat.title }}</span>
+            </div>
+            <!-- Löschbutton -->
+            <button @click.stop="deleteChat(index)" style="background: none; border: none; color: red; font-size: 16px;">&times;</button>
+        </div>
+    </div>
+</div>
+
+    <!-- Hauptbereich für den Chat -->
+    <div id="chat-area">
+        <div id="messages" ref="messagesContainer">
+            <h2>Chatbot Interface</h2>
+            <div v-for="message in currentChat.messages" :class="['message', message.sender]">
+                <div class="message-content">{{ message.text }}</div>
+            </div>
+        </div>        
+        <div id="input-area">
+            <input type="text" v-model="userInput" @keyup.enter="sendMessage" placeholder="Send a message...">
+            <button @click="sendMessage">Send</button>
+        </div>
+    </div>
+</div>
+    
+
+<!-- 
+<script src="js/script.js"></script>
+-->
+
+ <!-- Vue-Bibliothek -->
+ <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+ <!-- Deine JavaScript-Dateien -->
+ <script type="module" src="js/main.js"></script>
+
+</body>
+</html>

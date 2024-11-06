@@ -1,0 +1,85 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f2f2f2;
+}
+/* Hauptcontainer mit Flexbox */
+#app {
+    display: flex;
+    height: 90vh;
+    margin: 20px auto;
+    width: 80%;
+    background-color: #fff;
+    box-shadow: 0 0 10px #ccc;
+}
+/* Sidebar für Chat-Historie */
+#sidebar {
+    width: 25%;
+    border-right: 1px solid #ccc;
+    overflow-y: auto;
+}
+/* Bereich für den Chat */
+#chat-area {
+    width: 75%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+/* Nachrichtenliste */
+#messages {
+    padding: 20px;
+    overflow-y: auto;
+    flex-grow: 1;
+    max-height: calc(100vh - 200px); /* Passe die Höhe nach Bedarf an */
+}
+
+/* Eingabebereich */
+#input-area {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #ccc;
+}
+#input-area input {
+    flex: 1;
+    padding: 10px;
+    font-size: 16px;
+}
+#input-area button {
+    padding: 10px 20px;
+    font-size: 16px;
+}
+/* Styling für Chat-Historie */
+.chat-item {
+    padding: 15px;
+    border-bottom: 1px solid #ccc;
+    cursor: pointer;
+}
+.chat-item:hover {
+    background-color: #f0f0f0;
+}
+.chat-item.active {
+    background-color: #e0e0e0;
+}
+/* Nachrichtenstyling */
+.message {
+    margin: 10px 0;
+}
+.message.user {
+    text-align: right;
+}
+.message.bot {
+    text-align: left;
+}
+.message-content {
+    display: inline-block;
+    padding: 10px;
+    border-radius: 5px;
+    max-width: 70%;
+}
+.message.user .message-content {
+    background-color: #0084ff;
+    color: #fff;
+}
+.message.bot .message-content {
+    background-color: #e5e5ea;
+    color: #000;
+}
